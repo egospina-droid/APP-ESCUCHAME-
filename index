@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Escúchame - Bienestar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap');
+        body { font-family: 'Quicksand', sans-serif; background: #f0f7f4; color: #374151; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 2rem; border: 1px solid rgba(255, 255, 255, 0.3); }
+        .emotion-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .emotion-btn:hover { transform: translateY(-5px); }
+        .active-emotion { border: 3px solid #10b981; transform: scale(1.1); }
+        .loader { border-top-color: #10b981; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .app-logo { max-width: 120px; height: auto; margin: 0 auto; }
+        .nav-logo { height: 40px; width: auto; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-md glass shadow-2xl overflow-hidden animate__animated animate__fadeIn">
+        
+        <!-- Pantalla de Bienvenida / Login -->
+        <div id="login-screen" class="p-8 text-center">
+            <div class="mb-6">
+                <div class="mb-4">
+                    <img src="https://i.imgur.com/TIbpZSd.png" alt="Logo Escúchame" class="app-logo animate__animated animate__pulse animate__infinite">
+                </div>
+                <h1 class="text-3xl font-bold text-emerald-800 mt-2">Escúchame</h1>
+                <p class="text-emerald-600 mt-1">Tu espacio seguro para sentir.</p>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="alias-input" placeholder="Tu alias o apodo..." class="w-full p-4 rounded-xl border-2 border-emerald-100 focus:border-emerald-400 outline-none transition-all text-center text-lg">
+                <button onclick="handleLogin()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">
+                    Empezar mi viaje
+                </button>
+            </div>
+            <p class="text-xs text-gray-400 mt-6 italic">Privacidad garantizada. Solo usamos tu alias.</p>
+        </div>
+
+        <!-- Pantalla Principal (Dashboard) -->
+        <div id="main-screen" class="hidden p-6 space-y-6">
+            <header class="flex justify-between items-center border-b border-emerald-50 pb-4">
+                <div class="flex items-center space-x-3">
+                    <img src="https://i.imgur.com/TIbpZSd.png" alt="Logo" class="nav-logo">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-700 leading-tight">Hola, <span id="user-display"></span></h2>
+                        <p class="text-xs text-emerald-600" id="racha-info">Racha: 0 días 🔥</p>
+                    </div>
+                </div>
+                <button onclick="showScreen('history-screen')" class="text-emerald-500 hover:bg-emerald-50 p-2 rounded-full transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </header>
+
+            <!-- Check-in Emocional -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50">
+                <h3 class="text-center font-medium mb-6 text-gray-500 text-sm italic">¿Cómo te sientes en este momento?</h3>
+                <div class="grid grid-cols-5 gap-2" id="emotions-grid">
+                    <button onclick="selectEmotion('Triste', '😔')" class="emotion-btn flex flex-col items-center p-2 rounded-xl hover:bg-red-50">
+                        <span class="text-3xl">😔</span>
+                        <span class="text-[10px] mt-1">Triste</span>
+                    </button>
+                    <button onclick="selectEmotion('Ansioso', '😰')" class="emotion-btn flex flex-col items-center p-2 rounded-xl hover:bg-orange-50">
+                        <span class="text-3xl">😰</span>
+                        <span class="text-[10px] mt-1">Ansioso</span>
+                    </button>
+                    <button onclick="selectEmotion('Neutral', '😐')" class="emotion-btn flex flex-col items-center p-2 rounded-xl hover:bg-gray-50">
+                        <span class="text-3xl">😐</span>
+                        <span class="text-[10px] mt-1">Neutral</span>
+                    </button>
+                    <button onclick="selectEmotion('Bien', '🙂')" class="emotion-btn flex flex-col items-center p-2 rounded-xl hover:bg-blue-50">
+                        <span class="text-3xl">🙂</span>
+                        <span class="text-[10px] mt-1">Bien</span>
+                    </button>
+                    <button onclick="selectEmotion('Feliz', '🤩')" class="emotion-btn flex flex-col items-center p-2 rounded-xl hover:bg-yellow-50">
+                        <span class="text-3xl">🤩</span>
+                        <span class="text-[10px] mt-1">Feliz</span>
+                    </button>
+                </div>
+                
+                <div id="journal-area" class="mt-6 hidden animate__animated animate__fadeIn">
+                    <textarea id="journal-input" placeholder="Escribe un pensamiento breve... (+3 puntos)" class="w-full p-4 bg-gray-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-emerald-200 outline-none" rows="3"></textarea>
+                    <button onclick="submitCheckIn()" id="submit-btn" class="w-full mt-4 bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-md">
+                        Registrar emoción
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zona de Acompañamiento -->
+            <div id="support-zone" class="hidden animate__animated animate__fadeInUp">
+                <div class="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+                    <p id="support-message" class="text-emerald-800 text-sm italic mb-4"></p>
+                    <div class="flex items-center space-x-3 bg-white p-3 rounded-2xl shadow-sm">
+                        <button onclick="toggleAudio()" id="audio-btn" class="p-2 bg-emerald-500 text-white rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
+                        </button>
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-gray-600">Audio de Bienestar</p>
+                            <p class="text-[10px] text-gray-400">Pausa, respira y escucha.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ranking Top 3 -->
+            <div>
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Top Bienestar 🌈</h3>
+                <div id="ranking-list" class="space-y-3">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Historial -->
+        <div id="history-screen" class="hidden p-6 space-y-4">
+            <button onclick="showScreen('main-screen')" class="mb-4 text-gray-400 flex items-center text-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Volver
+            </button>
+            <h2 class="text-xl font-bold text-gray-700">Tu evolución</h2>
+            <div id="history-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                <!-- Dinámico -->
+            </div>
+        </div>
+
+        <!-- Modal de Notificación -->
+        <div id="modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+            <div class="bg-white p-8 rounded-3xl w-full max-w-xs text-center">
+                <div id="modal-icon" class="text-5xl mb-4">🎉</div>
+                <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+                <p id="modal-body" class="text-gray-500 text-sm mb-6"></p>
+                <button onclick="closeModal()" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-bold">Entendido</button>
+            </div>
+        </div>
+
+    </div>
+
+    <audio id="wellbeing-audio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let currentUser = null;
+        let selectedEmotion = null;
+        const messages = {
+            'Triste': "Está bien no estar bien. Tómate un momento para respirar. Eres fuerte.",
+            'Ansioso': "Enfócate en tu respiración. 4 segundos inhalando, 4 reteniendo, 4 exhalando.",
+            'Neutral': "Un día tranquilo es un buen día. Mantén la calma y sigue adelante.",
+            'Bien': "¡Qué alegría! Sigue cultivando esos pensamientos positivos.",
+            'Feliz': "¡Tu luz brilla hoy! Comparte esa energía con el mundo."
+        };
+
+        function showScreen(id) {
+            ['login-screen', 'main-screen', 'history-screen'].forEach(s => {
+                document.getElementById(s).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'main-screen' || id === 'history-screen') loadData();
+        }
+
+        function handleLogin() {
+            const alias = document.getElementById('alias-input').value.trim();
+            if (!alias) return;
+            
+            google.script.run
+                .withSuccessHandler(res => {
+                    currentUser = res.alias;
+                    document.getElementById('user-display').innerText = currentUser;
+                    document.getElementById('racha-info').innerText = `Racha: ${res.racha} días 🔥`;
+                    showScreen('main-screen');
+                })
+                .loginUser(alias);
+        }
+
+        function selectEmotion(name, emoji) {
+            selectedEmotion = name;
+            const btns = document.querySelectorAll('.emotion-btn');
+            btns.forEach(b => b.classList.remove('active-emotion'));
+            event.currentTarget.classList.add('active-emotion');
+            
+            document.getElementById('journal-area').classList.remove('hidden');
+            document.getElementById('support-zone').classList.remove('hidden');
+            document.getElementById('support-message').innerText = messages[name];
+        }
+
+        function submitCheckIn() {
+            const nota = document.getElementById('journal-input').value;
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = "Guardando...";
+
+            google.script.run
+                .withSuccessHandler(res => {
+                    btn.disabled = false;
+                    btn.innerHTML = "Registrar emoción";
+                    openModal("¡Registro Guardado!", `Has ganado +${res.puntosGanados} puntos. Tu racha es de ${res.rachaActual} días.`, "🌟");
+                    document.getElementById('journal-input').value = "";
+                    document.getElementById('racha-info').innerText = `Racha: ${res.rachaActual} días 🔥`;
+                    loadData();
+                })
+                .saveCheckIn({
+                    alias: currentUser,
+                    emocion: selectedEmotion,
+                    nota: nota
+                });
+        }
+
+        function loadData() {
+            google.script.run
+                .withSuccessHandler(data => {
+                    // Ranking
+                    const rankList = document.getElementById('ranking-list');
+                    rankList.innerHTML = data.ranking.length > 0 ? 
+                        data.ranking.map((r, i) => `
+                            <div class="flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-6 h-6 flex items-center justify-center font-bold ${i==0?'text-yellow-500':'text-emerald-400'}">${i+1}</span>
+                                    <span class="font-medium text-gray-700">${r.alias}</span>
+                                </div>
+                                <span class="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">${r.puntos} pts</span>
+                            </div>
+                        `).join('') : '<p class="text-center text-xs text-gray-400">Aún no hay puntos registrados.</p>';
+
+                    // Historial
+                    const histList = document.getElementById('history-list');
+                    histList.innerHTML = data.historial.length > 0 ?
+                        data.historial.map(h => `
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-emerald-400">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="font-bold text-gray-700">${h[3]}</span>
+                                    <span class="text-[10px] text-gray-400">${h[1]} ${h[2]}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 italic">${h[4] || 'Sin nota de diario'}</p>
+                            </div>
+                        `).join('') : '<p class="text-center text-gray-400 mt-10">No tienes registros aún.</p>';
+                })
+                .getAppData(currentUser);
+        }
+
+        function toggleAudio() {
+            const audio = document.getElementById('wellbeing-audio');
+            const btn = document.getElementById('audio-btn');
+            if (audio.paused) {
+                audio.play();
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else {
+                audio.pause();
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>`;
+            }
+        }
+
+        function openModal(title, body, icon) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
